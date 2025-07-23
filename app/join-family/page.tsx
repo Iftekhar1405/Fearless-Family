@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,11 +11,14 @@ import { api } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 
 export default function JoinFamily() {
-  const [familyCode, setFamilyCode] = useState('');
+  const router = useRouter();
+  const params = useSearchParams()
+  const code = params.get('code')
+  const [familyCode, setFamilyCode] = useState(code || '');
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,10 +35,10 @@ export default function JoinFamily() {
 
       // Store member ID in localStorage for this session
       localStorage.setItem(`member_${response.family.code}`, response.member._id);
-      
+
       // Navigate to the family chat
       router.push(`/family/${response.family.code}`);
-    } catch (err:any) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to join family');
     } finally {
       setIsLoading(false);
@@ -45,7 +48,7 @@ export default function JoinFamily() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <main className="mx-auto max-w-md px-4 py-12">
         <Card>
           <CardHeader className="text-center">

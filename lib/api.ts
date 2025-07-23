@@ -9,6 +9,7 @@ class ApiClient {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
+      credentials: 'include',
       ...options,
     });
 
@@ -26,7 +27,7 @@ class ApiClient {
     });
   }
 
-  async joinFamily(data: JoinFamilyRequest): Promise<{ family: Family; member: {_id:string} }> {
+  async joinFamily(data: JoinFamilyRequest): Promise<{ family: Family; member: { _id: string } }> {
     return this.request('/families/join', {
       method: 'POST',
       body: JSON.stringify(data),

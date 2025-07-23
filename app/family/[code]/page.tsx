@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { MessageList } from '@/components/MessageList';
 import { MessageInput } from '@/components/MessageInput';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { Menu, Users, Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Family, Member, Message } from '@/types';
 
@@ -32,7 +32,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
   useEffect(() => {
     const storedMemberId = localStorage.getItem(`member_${params.code}`);
     if (!storedMemberId) {
-      router.push('/join-family');
+      router.push(`/join-family?code=${params.code}`);
       return;
     }
     setMemberId(storedMemberId);
@@ -55,7 +55,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load family data');
       if (err instanceof Error && err.message.includes('not found')) {
-        router.push('/join-family');
+        router.push(`/join-family?code=${params.code}`);
       }
     }
   };
@@ -83,7 +83,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
       }
-    }; 
+    };
   }, [memberId, family]);
 
   const handleSendMessage = async (content: string) => {
@@ -105,12 +105,15 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading family chat...</p>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading family chat...</h3>
+            <p className="text-gray-500">Setting up your conversation space</p>
           </div>
         </div>
       </div>
@@ -119,14 +122,18 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   if (error && !family) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <p className="text-red-600">{error}</p>
-            <Button 
-              onClick={() => router.push('/join-family')} 
-              className="mt-4"
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Connection Error</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <Button
+              onClick={() => router.push('/join-family')}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
             >
               Join Family
             </Button>
@@ -139,27 +146,39 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
   if (!family) return null;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      
+
       <div className="flex flex-1 overflow-hidden">
         {/* Main Chat Area */}
-        <div className="flex flex-1 flex-col lg:mr-80">
+        <div className="flex flex-1 flex-col ">
           {/* Chat Header */}
-          <div className="border-b border-gray-200 p-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-black">{family.name}</h1>
-              <p className="text-sm text-gray-500">{members.length} members</p>
+          <div className="border-b-2 border-gray-100 px-6 py-4 bg-white shadow-sm">
+            <div className="flex items-center justify-between max-w-4xl mx-auto">
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">{family.name}</h1>
+                <p className="text-sm text-gray-500 mt-1">{members.length} members online</p>
+              </div>
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <Menu className="w-5 h-5 text-gray-600" />
+              </button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="px-6 py-3 bg-red-50 border-b border-red-100">
+              <div className="max-w-4xl mx-auto">
+                <p className="text-sm text-red-600 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  {error}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <MessageList messages={messages} />
