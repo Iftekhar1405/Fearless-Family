@@ -1,6 +1,6 @@
 import { CreateFamilyRequest, JoinFamilyRequest, SendMessageRequest, Family, Member, Message } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://fearless-family-apis-production.up.railway.app/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 class ApiClient {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
