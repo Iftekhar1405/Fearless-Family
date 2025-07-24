@@ -151,7 +151,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main Chat Area */}
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col min-h-0">
           {/* Chat Header */}
           <div className="border-b-2 border-border/50 px-6 py-4 bg-card shadow-sm transition-colors duration-300">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -183,11 +183,15 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
             </div>
           )}
 
-          {/* Messages */}
-          <MessageList messages={messages} />
-
-          {/* Message Input */}
-          <MessageInput onSendMessage={handleSendMessage} />
+          {/* Messages and Input: make MessageInput fixed at bottom */}
+          <div className="relative flex-1 min-h-0">
+            <div className="absolute inset-0 pb-[92px]"> {/* 92px = height of input + padding */}
+              <MessageList messages={messages} />
+            </div>
+            <div className="fixed bottom-0 left-0 w-full z-20 bg-background border-t-2 border-border">
+              <MessageInput onSendMessage={handleSendMessage} />
+            </div>
+          </div>
         </div>
 
         {/* Sidebar */}
