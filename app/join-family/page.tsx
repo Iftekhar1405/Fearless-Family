@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,13 +12,12 @@ import { Loader2 } from 'lucide-react';
 
 export default function JoinFamily() {
   const router = useRouter();
-  const params = useSearchParams()
-  const code = params.get('code')
+  const params = useSearchParams();
+  const code = params.get('code');
   const [familyCode, setFamilyCode] = useState(code || '');
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,21 +45,23 @@ export default function JoinFamily() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      <main className="mx-auto max-w-md px-4 py-12">
-        <Card>
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 lg:px-8">
+        <Card className="bg-card border-border text-card-foreground shadow-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-black">Join Family</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-bold text-primary">Join Family</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Enter the secret code to join an existing family chat.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="familyCode">Family Code</Label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1">
+                <Label htmlFor="familyCode" className="text-foreground">
+                  Family Code
+                </Label>
                 <Input
                   id="familyCode"
                   value={familyCode}
@@ -68,11 +69,13 @@ export default function JoinFamily() {
                   placeholder="Enter family code"
                   required
                   disabled={isLoading}
-                  className="font-mono"
+                  className="font-mono border-border bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Your Username</Label>
+              <div className="space-y-1">
+                <Label htmlFor="username" className="text-foreground">
+                  Your Username
+                </Label>
                 <Input
                   id="username"
                   value={username}
@@ -80,16 +83,19 @@ export default function JoinFamily() {
                   placeholder="Choose a username"
                   required
                   disabled={isLoading}
+                  className="border-border bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Other members will see your username in the member list, but not with your messages.
                 </p>
               </div>
+
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                <div className="text-sm text-destructive-foreground bg-destructive border border-destructive rounded-md p-3">
                   {error}
                 </div>
               )}
+
               <Button
                 type="submit"
                 className="w-full"

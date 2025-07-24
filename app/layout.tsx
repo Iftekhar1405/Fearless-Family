@@ -1,12 +1,18 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Poppins } from 'next/font/google';
+import { ThemeProvider } from '@/hooks/use-theme';
 
-const inter = Inter({ subsets: ['latin'] });
+
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-poppins'
+});
 
 export const metadata: Metadata = {
-  title: 'Fearless Family - Anonymous Family Chat',
-  description: 'Create private chat groups where messages are completely anonymous',
+  title: 'Fearless Family',
+  description: 'Connect with your family members',
 };
 
 export default function RootLayout({
@@ -15,8 +21,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${poppins.variable} font-sans antialiased`}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

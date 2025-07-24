@@ -30,11 +30,11 @@ export default function CreateFamily() {
         username: username.trim(),
       });
 
-      console.log({response})
+      console.log({ response });
 
       // Store member ID in localStorage for this session
       localStorage.setItem(`member_${response.family.code}`, response.member._id);
-      
+
       // Navigate to the family chat
       router.push(`/family/${response.family.code}`);
     } catch (err) {
@@ -45,21 +45,23 @@ export default function CreateFamily() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <Navbar />
-      
-      <main className="mx-auto max-w-md px-4 py-12">
-        <Card>
+
+      <main className="mx-auto max-w-md px-4 py-12 sm:px-6 lg:px-8">
+        <Card className="bg-card border-border text-card-foreground shadow-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-black">Create Family</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-2xl font-bold text-primary">Create Family</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Start a new anonymous chat group for your family or friends.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="familyName">Family Name</Label>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1">
+                <Label htmlFor="familyName" className="text-foreground">
+                  Family Name
+                </Label>
                 <Input
                   id="familyName"
                   value={familyName}
@@ -67,10 +69,13 @@ export default function CreateFamily() {
                   placeholder="Enter family name"
                   required
                   disabled={isLoading}
+                  className="border-border bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="username">Your Username</Label>
+              <div className="space-y-1">
+                <Label htmlFor="username" className="text-foreground">
+                  Your Username
+                </Label>
                 <Input
                   id="username"
                   value={username}
@@ -78,16 +83,19 @@ export default function CreateFamily() {
                   placeholder="Choose a username"
                   required
                   disabled={isLoading}
+                  className="border-border bg-input text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Other members will see your username in the member list, but not with your messages.
                 </p>
               </div>
+
               {error && (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
+                <div className="text-sm text-destructive-foreground bg-destructive border border-destructive rounded-md p-3">
                   {error}
                 </div>
               )}
+
               <Button
                 type="submit"
                 className="w-full"

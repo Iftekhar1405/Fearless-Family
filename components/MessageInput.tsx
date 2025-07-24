@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Send } from 'lucide-react';
 
 interface MessageInputProps {
@@ -29,29 +27,33 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
   };
 
   return (
-    <div className="border-t-2 border-gray-100 bg-white px-6 py-4">
+    <div className="border-t-2 border-border bg-background px-6 py-4 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
-        <div className="relative">
+        <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-center space-x-3">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               placeholder="Type your message..."
-              className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-2xl resize-none focus:border-blue-500 focus:ring-0 focus:outline-none transition-colors duration-200 placeholder-gray-500"
+              className="w-full px-4 py-3 pr-12 border-2 border-border bg-input text-foreground rounded-2xl resize-none 
+                         placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none 
+                         transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               rows={1}
               style={{ minHeight: '52px', maxHeight: '120px' }}
               disabled={disabled}
             />
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={!message.trim() || disabled}
-              className="w-12 h-12 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors duration-200 flex-shrink-0"
+              className="w-12 h-12 bg-primary hover:bg-primary/90 disabled:bg-muted rounded-full flex items-center justify-center 
+                         transition-colors duration-200 disabled:cursor-not-allowed flex-shrink-0"
+              aria-label="Send message"
             >
-              <Send className="w-5 h-5 text-white" />
+              <Send className="w-5 h-5 text-primary-foreground" />
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { MessageList } from '@/components/MessageList';
 import { MessageInput } from '@/components/MessageInput';
 import { Button } from '@/components/ui/button';
-import { Menu, Users, Loader2, AlertCircle } from 'lucide-react';
+import { Menu, Loader2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Family, Member, Message } from '@/types';
 
@@ -74,7 +74,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
     const startPolling = () => {
       pollingRef.current = setInterval(() => {
         loadData();
-      }, 3000); // Poll every 3 seconds
+      }, 3000);
     };
 
     startPolling();
@@ -96,7 +96,6 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
         memberId,
       });
 
-      // Add the new message to the local state immediately
       setMessages(prev => [...prev, newMessage]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send message');
@@ -105,15 +104,15 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
         <Navbar />
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center max-w-md">
-            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6">
-              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            <div className="w-16 h-16 bg-card rounded-2xl shadow-sm border border-border flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading family chat...</h3>
-            <p className="text-gray-500">Setting up your conversation space</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Loading family chat...</h3>
+            <p className="text-muted-foreground">Setting up your conversation space</p>
           </div>
         </div>
       </div>
@@ -122,18 +121,19 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   if (error && !family) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
         <Navbar />
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center max-w-md">
-            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 bg-destructive/10 border border-destructive/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-8 h-8 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Connection Error</h3>
-            <p className="text-gray-600 mb-6">{error}</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Connection Error</h3>
+            <p className="text-muted-foreground mb-6">{error}</p>
             <Button
               onClick={() => router.push('/join-family')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-xl font-medium transition-colors duration-200"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
+              aria-label="Join Family"
             >
               Join Family
             </Button>
@@ -146,33 +146,36 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
   if (!family) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main Chat Area */}
-        <div className="flex flex-1 flex-col ">
+        <div className="flex flex-1 flex-col">
           {/* Chat Header */}
-          <div className="border-b-2 border-gray-100 px-6 py-4 bg-white shadow-sm">
+          <div className="border-b-2 border-border/50 px-6 py-4 bg-card shadow-sm transition-colors duration-300">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">{family.name}</h1>
-                <p className="text-sm text-gray-500 mt-1">{members.length} members online</p>
+                <h1 className="text-xl font-bold text-foreground">{family.name}</h1>
+                <p className="text-sm text-muted-foreground mt-1">{members.length} members online</p>
               </div>
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-200"
-              >
-                <Menu className="w-5 h-5 text-gray-600" />
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-accent transition-colors duration-200"
+                  aria-label="Open sidebar menu"
+                >
+                  <Menu className="w-5 h-5 text-foreground" />
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="px-6 py-3 bg-red-50 border-b border-red-100">
+            <div className="px-6 py-3 bg-destructive/10 border-b border-destructive/20 transition-colors duration-300">
               <div className="max-w-4xl mx-auto">
-                <p className="text-sm text-red-600 flex items-center">
+                <p className="text-sm text-destructive flex items-center">
                   <AlertCircle className="w-4 h-4 mr-2" />
                   {error}
                 </p>
