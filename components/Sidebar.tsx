@@ -2,8 +2,6 @@
 
 import { Member } from '@/types';
 import { Users, Clock, X, Check, Copy } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -25,7 +23,7 @@ export function Sidebar({ familyName, familyCode, members, isOpen, onClose }: Si
   };
 
   const shareInviteLink = () => {
-    const inviteLink = `${window.location.origin}/join-family?code=${familyCode}`;
+    const inviteLink = `${window.location.origin}/family/${familyCode}`;
     if (navigator.share) {
       navigator
         .share({
@@ -54,9 +52,8 @@ export function Sidebar({ familyName, familyCode, members, isOpen, onClose }: Si
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-80 transform bg-background dark:bg-background shadow-2xl transition-transform duration-300 ease-out lg:static lg:translate-x-0 lg:shadow-none lg:border-l-2 border-border dark:border-border ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed inset-y-0 right-0 z-50 w-80 transform bg-background dark:bg-background shadow-2xl transition-transform duration-300 ease-out lg:static lg:translate-x-0 lg:shadow-none lg:border-l-2 border-border dark:border-border ${isOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
