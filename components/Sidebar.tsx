@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Footer } from 'react-day-picker';
+import { Footer } from './Footer';
 
 interface SidebarProps {
   familyName: string;
@@ -147,11 +147,9 @@ export function Sidebar({ familyName, familyCode, members, isOpen, onClose }: Si
                   </div>
                 ))}
               </div>
+              <Footer/>
             </div>
           </div>
-          <footer>
-            <Footer/>
-          </footer>
         </div>
       </div>
     </>
