@@ -1,23 +1,28 @@
 "use client";
 
-import { Linkedin, Twitter, Instagram, X } from "lucide-react";
+import { Linkedin, Instagram, X, Mail } from "lucide-react";
 
 export const Footer = () => {
   const developers = [
     {
-      name: "Iftekhar Ahemad",
-      linkedin: "",
-      twitter: "",
-      instagram: "",
+      name: "Iftekhar Ahmed",
+      linkedin: "https://www.linkedin.com/in/iftekhar-ahmed-857606188/",
+      mail: "iftekharahmedxyz@gmail.com",
+      instagram: "https://www.instagram.com/iftekharahmedx?igsh=dnEwNmx2YWQwemhj",
     },
-    {},
+    {
+      name: 'Syed Amaan Ali',
+      linkedin: 'https://www.linkedin.com/in/syed-amaan-ali-69399a173/',
+      mail: 'syedamaan7733@gmail.com',
+      instagram: 'https://www.instagram.com/amaan.ali___?igsh=eGNyaHRvNGI5ZWMy'
+    },
   ];
 
   return (
     <footer className="border-t border-border bg-background text-foreground py-12">
       <div className="flex flex-col justify-center items-center gap-4 max-w-6xl mx-auto px-6">
         <h1 className="font-semibold tracking-widest text-xl ">
-          DEVELOPED WITH ❤️{" "}
+          DEVELOPED WITH 🛠️⚒️{" "}
         </h1>
         <div className="mb-10">
           <div className="flex flex-wrap justify-center gap-8 lg:gap-12">
@@ -32,17 +37,17 @@ export const Footer = () => {
                 <div className="flex space-x-4 justify-center">
                   <a
                     href={dev.linkedin}
-                    className="text-muted-foreground hover:text-primary p-2 rounded-lg hover:bg-accent transition-all duration-300 transform hover:scale-110"
+                    className="text-muted-foreground hover:text-blue-500 p-2 rounded-lg hover:bg-accent transition-all duration-300 transform hover:scale-110"
                     aria-label={`${dev.name} LinkedIn`}
                   >
                     <Linkedin size={20} />
                   </a>
                   <a
-                    href={dev.twitter}
+                    href={`mailto:${dev.mail}?subject=Hello&body=Hi%20Iftekhar,%0D%0A`}
                     className="text-muted-foreground hover:text-primary p-2 rounded-lg hover:bg-accent transition-all duration-300 transform hover:scale-110"
-                    aria-label={`${dev.name} Twitter`}
+                    aria-label={`${dev.name} Mail`}
                   >
-                    <Twitter size={20} />
+                    <Mail size={20} />
                   </a>
                   <a
                     href={dev.instagram}
@@ -64,20 +69,6 @@ export const Footer = () => {
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <div className="text-muted-foreground font-medium">
             © 2025 All rights reserved.
-          </div>
-          <div className="flex space-x-6">
-            <a
-              href="/privacy"
-              className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4 decoration-2 decoration-primary transition-all duration-300"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="/terms"
-              className="text-muted-foreground hover:text-foreground hover:underline underline-offset-4 decoration-2 decoration-primary transition-all duration-300"
-            >
-              Terms & Conditions
-            </a>
           </div>
         </div>
       </div>
