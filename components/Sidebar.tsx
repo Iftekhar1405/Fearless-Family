@@ -4,6 +4,7 @@ import { Member } from '@/types';
 import { Users, Clock, X, Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Footer } from './Footer';
 
 interface SidebarProps {
   familyName: string;
@@ -143,6 +144,7 @@ export function Sidebar({ familyName, familyCode, members, isOpen, onClose }: Si
                   </div>
                 ))}
               </div>
+              <Footer/>
             </div>
           </div>
         </div>

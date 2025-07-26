@@ -1,8 +1,11 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageCircle, Users, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+
 
 export default function Home() {
   return (
@@ -113,6 +116,9 @@ export default function Home() {
           </div>
         </div>
       </main>
+       <footer>
+          <Footer/>
+        </footer>
     </div>
   );
 }

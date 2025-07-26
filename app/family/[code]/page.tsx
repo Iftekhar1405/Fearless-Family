@@ -187,9 +187,8 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
           <div className="relative flex-1 min-h-0">
             <div className="absolute inset-0 pb-[92px]"> {/* 92px = height of input + padding */}
               <MessageList messages={messages} />
-            </div>
-            <div className="fixed bottom-0 left-0 w-full z-20 bg-background border-t-2 border-border">
-              <MessageInput onSendMessage={handleSendMessage} />
+                <MessageInput onSendMessage={handleSendMessage} />
+        
             </div>
           </div>
         </div>

@@ -28,7 +28,7 @@ export function MessageInput({ onSendMessage, disabled }: MessageInputProps) {
 
   return (
     <div className="border-t-2 border-border bg-background px-6 py-4 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto outline-none ring-0">
         <form onSubmit={handleSubmit} className="relative">
           <div className="flex items-center space-x-3">
             <textarea

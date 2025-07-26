@@ -37,7 +37,7 @@ export default function CreateFamily() {
 
       // Navigate to the family chat
       router.push(`/family/${response.family.code}`);
-    } catch (err) {
+    } catch (err: any) {
       setError(err instanceof Error ? err.message : 'Failed to create family');
     } finally {
       setIsLoading(false);
