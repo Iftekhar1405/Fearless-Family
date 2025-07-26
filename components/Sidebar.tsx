@@ -5,6 +5,8 @@ import { Users, Clock, X, Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Footer } from './Footer';
+import { Button } from './ui/button';
+import Link from 'next/link';
 
 interface SidebarProps {
   familyName: string;
@@ -144,7 +146,17 @@ export function Sidebar({ familyName, familyCode, members, isOpen, onClose }: Si
                   </div>
                 ))}
               </div>
-              <Footer/>
+              <div className="flex items-center space-x-4 my-10">
+                <Link href="/create-family">
+                  <Button variant="outline" size="sm">
+                    Create Family
+                  </Button>
+                </Link>
+                <Link href="/join-family">
+                  <Button size="sm">Join Family</Button>
+                </Link>
+              </div>
+              <Footer />
             </div>
           </div>
         </div>

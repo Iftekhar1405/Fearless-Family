@@ -147,7 +147,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Main Chat Area */}
@@ -187,8 +187,8 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
           <div className="relative flex-1 min-h-0">
             <div className="absolute inset-0 pb-[92px]"> {/* 92px = height of input + padding */}
               <MessageList messages={messages} />
-                <MessageInput onSendMessage={handleSendMessage} />
-        
+              <MessageInput onSendMessage={handleSendMessage} />
+
             </div>
           </div>
         </div>
