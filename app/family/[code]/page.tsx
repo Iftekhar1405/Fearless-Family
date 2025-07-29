@@ -1,106 +1,91 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
-import { Sidebar } from '@/components/Sidebar';
-import { MessageList } from '@/components/MessageList';
-import { MessageInput } from '@/components/MessageInput';
-import { Button } from '@/components/ui/button';
-import { Menu, Loader2, AlertCircle } from 'lucide-react';
-import { api } from '@/lib/api';
-import { Family, Member, Message } from '@/types';
+import { Navbar } from '@/client/components/Navbar';
+import { Sidebar } from '@/client/components/Sidebar';
+import { MessageList } from '@/client/components/MessageList';
+import { MessageInput } from '@/client/components/MessageInput';
+import { Button } from '@/client/components/ui/button';
+import { Menu, Loader2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+
+import { useFamily, useFamilyMembers } from '@/client/hooks/useQueries';
+import { Family, Member, Message } from '@/client/types';
+import { useWebSocketWithQuery } from '@/client/hooks/useWebSocketWithClient';
 
 interface FamilyChatPageProps {
-  params: {
+  params: Promise<{
     code: string;
-  };
+  }>;
 }
 
 export default function FamilyChatPage({ params }: FamilyChatPageProps) {
-  const [family, setFamily] = useState<Family | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [memberId, setMemberId] = useState<string | null>(null);
-  const pollingRef = useRef<NodeJS.Timeout>();
+  const [username, setUsername] = useState<string>('');
   const router = useRouter();
 
-  // Get member ID from localStorage
+  // Get member ID and username from localStorage
   useEffect(() => {
-    const storedMemberId = localStorage.getItem(`member_${params.code}`);
+    const storedMemberId = localStorage.getItem(`member_${resolvedParams.code}`);
+    const storedUsername = localStorage.getItem(`username_${resolvedParams.code}`) || 'Anonymous';
+    
     if (!storedMemberId) {
-      router.push(`/join-family?code=${params.code}`);
+      router.push(`/join-family?code=${resolvedParams.code}`);
       return;
     }
+    
     setMemberId(storedMemberId);
-  }, [params.code, router]);
+    setUsername(storedUsername);
+  }, [resolvedParams.code, router]);
 
-  // Load family details and messages
-  const loadData = async () => {
-    if (!memberId) return;
+  // Use your custom hooks
+  const { data: family, isLoading: familyLoading, error: familyError } = useFamily(resolvedParams.code);
+  const { data: members = [], isLoading: membersLoading } = useFamilyMembers(resolvedParams.code);
 
-    try {
-      const [familyData, messagesData] = await Promise.all([
-        api.getFamilyDetails(params.code, memberId),
-        api.getMessages(params.code, memberId),
-      ]);
+  // WebSocket integration
+  const {
+    isConnected,
+    currentFamilyId,
+    messages,
+    typingUsers,
+    onlineUsers,
+    isLoadingMessages,
+    messagesError,
+    joinFamily,
+    sendMessage,
+    sendTypingIndicator,
+    leaveFamily,
+    isSendingMessage,
+    isConnecting
+  } = useWebSocketWithQuery(memberId || '', username);
 
-      setFamily(familyData.family);
-      setMembers(familyData.members);
-      setMessages(messagesData);
-      setError('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load family data');
-      if (err instanceof Error && err.message.includes('not found')) {
-        router.push(`/join-family?code=${params.code}`);
-      }
-    }
-  };
-
-  // Initial load
+  // Join family when component mounts and we have required data
   useEffect(() => {
-    if (memberId) {
-      loadData().finally(() => setIsLoading(false));
+    if (memberId && resolvedParams.code && !currentFamilyId) {
+      joinFamily(resolvedParams.code);
     }
-  }, [memberId]);
+  }, [memberId, resolvedParams.code, currentFamilyId, joinFamily]);
 
-  // Set up polling for new messages
+  // Cleanup on unmount
   useEffect(() => {
-    if (!memberId || !family) return;
-
-    const startPolling = () => {
-      pollingRef.current = setInterval(() => {
-        loadData();
-      }, 3000);
-    };
-
-    startPolling();
-
     return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
+      if (currentFamilyId) {
+        leaveFamily();
       }
     };
-  }, [memberId, family]);
+  }, [currentFamilyId, leaveFamily]);
 
   const handleSendMessage = async (content: string) => {
-    if (!family || !memberId) return;
-
-    try {
-      const newMessage = await api.sendMessage({
-        content,
-        familyCode: family.code,
-        memberId,
-      });
-
-      setMessages(prev => [...prev, newMessage]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message');
-    }
+    if (!content.trim() || !currentFamilyId || isSendingMessage) return;
+    await sendMessage(content.trim());
   };
+
+  const isLoading = familyLoading || membersLoading || isLoadingMessages;
+  const error = familyError || messagesError;
 
   if (isLoading) {
     return (
@@ -129,7 +114,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
               <AlertCircle className="w-8 h-8 text-destructive" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">Connection Error</h3>
-            <p className="text-muted-foreground mb-6">{error}</p>
+            <p className="text-muted-foreground mb-6">{error.message}</p>
             <Button
               onClick={() => router.push('/join-family')}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
@@ -147,8 +132,6 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
-      {/* <Navbar /> */}
-
       <div className="flex flex-1 overflow-hidden">
         {/* Main Chat Area */}
         <div className="flex flex-1 flex-col min-h-0">
@@ -157,7 +140,29 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
                 <h1 className="text-xl font-bold text-foreground">{family.name}</h1>
-                <p className="text-sm text-muted-foreground mt-1">{members.length} members online</p>
+                <div className="flex items-center space-x-4 mt-1">
+                  <p className="text-sm text-muted-foreground">
+                    {onlineUsers.length > 0 ? `${onlineUsers.length} online` : `${members.length} members`}
+                  </p>
+                  <div className="flex items-center space-x-1">
+                    {isConnected ? (
+                      <>
+                        <Wifi className="w-3 h-3 text-green-500" />
+                        <span className="text-xs text-green-600">Connected</span>
+                      </>
+                    ) : isConnecting ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />
+                        <span className="text-xs text-yellow-600">Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="w-3 h-3 text-red-500" />
+                        <span className="text-xs text-red-600">Disconnected</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -177,18 +182,28 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
               <div className="max-w-4xl mx-auto">
                 <p className="text-sm text-destructive flex items-center">
                   <AlertCircle className="w-4 h-4 mr-2" />
-                  {error}
+                  {error.message || 'Connection error occurred'}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Messages and Input: make MessageInput fixed at bottom */}
+          {/* Messages and Input */}
           <div className="relative flex-1 min-h-0">
-            <div className="absolute inset-0 pb-[92px]"> {/* 92px = height of input + padding */}
-              <MessageList messages={messages} />
-              <MessageInput onSendMessage={handleSendMessage} />
-
+            <div className="absolute inset-0 pb-[92px]">
+              <MessageList 
+                messages={messages} 
+                typingUsers={typingUsers}
+                currentUserId={memberId}
+              />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0">
+              <MessageInput 
+                onSendMessage={handleSendMessage}
+                onTyping={sendTypingIndicator}
+                disabled={!isConnected || isSendingMessage}
+                isLoading={isSendingMessage}
+              />
             </div>
           </div>
         </div>
@@ -196,8 +211,9 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
         {/* Sidebar */}
         <Sidebar
           familyName={family.name}
-          familyCode={family.code}
+          familyCode={family.code || resolvedParams.code}
           members={members}
+          onlineUsers={onlineUsers}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />

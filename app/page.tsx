@@ -1,10 +1,10 @@
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/client/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card';
 import { MessageCircle, Users, Shield, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import { Navbar } from '@/client/components/Navbar';
+import { Footer } from '@/client/components/Footer';
 
 
 export default function Home() {

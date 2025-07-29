@@ -1,7 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
-import { ThemeProvider } from '@/hooks/use-theme';
+import { ThemeProvider } from '@/client/hooks/use-theme';
+import { QueryProvider } from '@/client/providers/QueryProvider';
 
 
 const poppins = Poppins({ 
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans antialiased`}>
         <ThemeProvider>
-          {children}
+          <QueryProvider>
+            {children}
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

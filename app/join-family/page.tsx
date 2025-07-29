@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Navbar } from '@/components/Navbar';
-import { api } from '@/lib/api';
+import { Button } from '@/client/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/components/ui/card';
+import { Input } from '@/client/components/ui/input';
+import { Label } from '@/client/components/ui/label';
+import { Navbar } from '@/client/components/Navbar';
+import { api } from '@/client/lib/api';
 import { Loader2 } from 'lucide-react';
 
 export default function JoinFamily() {

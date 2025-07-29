@@ -1,0 +1,112 @@
+'use client';
+
+import { useState, useRef, useCallback } from 'react';
+import { Send, Loader2 } from 'lucide-react';
+
+interface MessageInputProps {
+  onSendMessage: (content: string) => void;
+  onTyping?: (isTyping: boolean) => void;
+  disabled?: boolean;
+  isLoading?: boolean;
+}
+
+export function MessageInput({ onSendMessage, onTyping, disabled, isLoading }: MessageInputProps) {
+  const [message, setMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleStartTyping = useCallback(() => {
+    if (!isTyping && onTyping) {
+      setIsTyping(true);
+      onTyping(true);
+    }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTyping && onTyping) {
+        setIsTyping(false);
+        onTyping(false);
+      }
+    }, 2000);
+  }, [isTyping, onTyping]);
+
+  const handleStopTyping = useCallback(() => {
+    if (isTyping && onTyping) {
+      setIsTyping(false);
+      onTyping(false);
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+  }, [isTyping, onTyping]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim() && !disabled && !isLoading) {
+      onSendMessage(message.trim());
+      setMessage('');
+      handleStopTyping();
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setMessage(value);
+    
+    if (value.trim() && !disabled) {
+      handleStartTyping();
+    } else {
+      handleStopTyping();
+    }
+  };
+
+  return (
+    <div className="border-t-2 border-border bg-background px-6 py-4 transition-colors duration-300">
+      <div className="max-w-4xl mx-auto outline-none ring-0">
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="flex items-center space-x-3">
+            <textarea
+              value={message}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyPress}
+              placeholder={disabled ? "Connecting..." : "Type your message..."}
+              className="w-full px-4 py-3 pr-12 border-2 border-border bg-input text-foreground rounded-2xl resize-none 
+                         placeholder:text-muted-foreground focus:border-primary focus:ring-0 focus:outline-none 
+                         transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              rows={1}
+              style={{ minHeight: '52px', maxHeight: '120px' }}
+              disabled={disabled}
+              onBlur={handleStopTyping}
+            />
+            <button
+              type="submit"
+              disabled={!message.trim() || disabled || isLoading}
+              className="w-12 h-12 bg-primary hover:bg-primary/90 disabled:bg-muted rounded-full flex items-center justify-center 
+                         transition-colors duration-200 disabled:cursor-not-allowed flex-shrink-0"
+              aria-label="Send message"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 text-primary-foreground animate-spin" />
+              ) : (
+                <Send className="w-5 h-5 text-primary-foreground" />
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
