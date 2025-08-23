@@ -27,12 +27,24 @@ interface SendMessageData {
   content: string;
 }
 
-// API functions (replace with your actual API calls)
+// API functions - Updated to use Next.js API routes
 const messagesApi = {
   getMessages: async (familyId: string): Promise<Message[]> => {
-    const response = await fetch(`/api/families/${familyId}/messages`);
-    if (!response.ok) throw new Error("Failed to fetch messages");
-    return response.json();
+    try {
+      const response = await fetch(`/api/families/${familyId}/messages`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Return empty array if no messages exist yet
+          return [];
+        }
+        throw new Error(`Failed to fetch messages: ${response.status}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      // Return empty array as fallback
+      return [];
+    }
   },
 
   sendMessage: async (
@@ -52,9 +64,21 @@ const messagesApi = {
   },
 
   getFamilyMembers: async (familyId: string) => {
-    const response = await fetch(`/api/families/${familyId}/members`);
-    if (!response.ok) throw new Error("Failed to fetch family members");
-    return response.json();
+    try {
+      const response = await fetch(`/api/families/${familyId}/members`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Return empty array if no members exist yet
+          return [];
+        }
+        throw new Error(`Failed to fetch family members: ${response.status}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error("Error fetching family members:", error);
+      // Return empty array as fallback
+      return [];
+    }
   },
 };
 
@@ -64,6 +88,7 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const wsService = useRef<WebSocketService | null>(null);
   const typingTimeouts = useRef<Map<string, NodeJS.Timeout>>(new Map());
@@ -87,6 +112,13 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
     enabled: !!currentFamilyId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors
+      if (error instanceof Error && error.message.includes("404")) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   // TanStack Query for family members
@@ -98,6 +130,13 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
         : Promise.resolve([]),
     enabled: !!currentFamilyId,
     staleTime: 1000 * 60 * 2, // 2 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on 404 errors
+      if (error instanceof Error && error.message.includes("404")) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   // Mutation for sending messages (fallback if WebSocket fails)
@@ -125,7 +164,10 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
 
   // Initialize WebSocket service
   useEffect(() => {
-    wsService.current = new WebSocketService(userId, username);
+    // Only initialize WebSocket if we have a userId
+    if (userId) {
+      wsService.current = new WebSocketService(userId, username);
+    }
     return () => {
       wsService.current?.disconnect();
     };
@@ -145,11 +187,18 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
     if (!wsService.current || isConnected || isConnecting) return;
 
     setIsConnecting(true);
+    setConnectionError(null);
+
     try {
       await wsService.current.connect();
       setIsConnected(true);
+      setConnectionError(null);
     } catch (error) {
       console.error("Failed to connect to WebSocket:", error);
+      setConnectionError(
+        error instanceof Error ? error.message : "Connection failed"
+      );
+      setIsConnected(false);
     } finally {
       setIsConnecting(false);
     }
@@ -157,7 +206,7 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
 
   // Wait for connection helper
   const waitForConnection = useCallback(
-    async (timeout = 10000): Promise<boolean> => {
+    async (timeout = 5000): Promise<boolean> => {
       if (isConnected) return true;
 
       return new Promise((resolve) => {
@@ -180,7 +229,11 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
   // Join a family
   const joinFamily = useCallback(
     async (familyId: string) => {
-      if (!wsService.current) return;
+      if (!wsService.current) {
+        // If no WebSocket service, just set the family ID and rely on REST API
+        setCurrentFamilyId(familyId);
+        return;
+      }
 
       const executeJoinFamily = async () => {
         try {
@@ -196,27 +249,39 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
           });
         } catch (error) {
           console.error("Failed to join family:", error);
+          // Even if WebSocket fails, set the family ID to enable REST API fallback
+          setCurrentFamilyId(familyId);
+
+          // Don't throw the error for "not a member" issues in development
+          if (
+            error instanceof Error &&
+            error.message.includes("not a member")
+          ) {
+            console.log(
+              "⚠️ WebSocket join failed, but continuing with REST API fallback"
+            );
+            return;
+          }
           throw error;
         }
       };
 
-      // If not connected, wait for connection or queue the action
+      // If not connected, try to connect first
       if (!isConnected) {
-        // First try to establish connection if not connecting
         if (!isConnecting) {
           await connect();
         }
 
-        // Wait for connection
-        const connected = await waitForConnection();
+        // Wait for connection with shorter timeout
+        const connected = await waitForConnection(3000);
         if (connected) {
           await executeJoinFamily();
         } else {
+          // If WebSocket connection fails, still set family ID for REST API fallback
+          console.log("WebSocket connection failed, using REST API fallback");
+          setCurrentFamilyId(familyId);
           // Queue the action for when connection is established
           pendingActions.current.push(() => executeJoinFamily());
-          console.log(
-            "Queued joinFamily action - waiting for WebSocket connection"
-          );
         }
       } else {
         await executeJoinFamily();
@@ -254,7 +319,18 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
 
       if (wsService.current && isConnected) {
         // Try WebSocket first
-        wsService.current.sendMessage(content);
+        try {
+          wsService.current.sendMessage(content);
+        } catch (error) {
+          console.error("WebSocket send failed, falling back to API:", error);
+          // Fallback to API
+          await sendMessageMutation.mutateAsync({
+            familyId: currentFamilyId,
+            content,
+            userId,
+            username,
+          });
+        }
       } else {
         // Fallback to API
         await sendMessageMutation.mutateAsync({
@@ -272,7 +348,11 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
   const sendTypingIndicator = useCallback(
     (isTyping: boolean) => {
       if (!wsService.current || !isConnected) return;
-      wsService.current.sendTypingIndicator(isTyping);
+      try {
+        wsService.current.sendTypingIndicator(isTyping);
+      } catch (error) {
+        console.error("Failed to send typing indicator:", error);
+      }
     },
     [isConnected]
   );
@@ -280,7 +360,13 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
   // Get family members
   const getFamilyMembers = useCallback(() => {
     if (wsService.current && isConnected) {
-      wsService.current.getFamilyMembers();
+      try {
+        wsService.current.getFamilyMembers();
+      } catch (error) {
+        console.error("Failed to get family members via WebSocket:", error);
+        // Fallback to refetch via TanStack Query
+        refetchFamilyMembers();
+      }
     } else {
       // Fallback to refetch via TanStack Query
       refetchFamilyMembers();
@@ -379,35 +465,44 @@ export const useWebSocketWithQuery = (userId: string, username?: string) => {
     };
   }, [getFamilyMembers, queryClient, currentFamilyId]);
 
-  // Auto-connect on mount
+  // Auto-connect on mount (only if we have a userId)
   useEffect(() => {
-    connect();
-  }, [connect]);
+    if (userId) {
+      connect();
+    }
+  }, [connect, userId]);
 
-  // Cleanup on unmount
+  // Retry connection if it drops (with exponential backoff)
   useEffect(() => {
-    return () => {
-      leaveFamily();
-      wsService.current?.disconnect();
-    };
-  }, [leaveFamily]);
+    if (!isConnected && !isConnecting && wsService.current && userId) {
+      let retryCount = 0;
+      const maxRetries = 3;
 
-  // Retry connection if it drops
-  useEffect(() => {
-    if (!isConnected && !isConnecting && wsService.current) {
       const retryInterval = setInterval(() => {
-        console.log("Attempting to reconnect WebSocket...");
+        if (retryCount >= maxRetries) {
+          console.log("Max retry attempts reached, stopping reconnection");
+          clearInterval(retryInterval);
+          return;
+        }
+
+        console.log(
+          `Attempting to reconnect WebSocket... (${
+            retryCount + 1
+          }/${maxRetries})`
+        );
+        retryCount++;
         connect();
-      }, 5000);
+      }, Math.min(5000 * Math.pow(2, retryCount), 30000)); // Exponential backoff, max 30s
 
       return () => clearInterval(retryInterval);
     }
-  }, [isConnected, isConnecting, connect]);
+  }, [isConnected, isConnecting, connect, userId]);
 
   return {
     // Connection state
     isConnected,
     isConnecting,
+    connectionError,
     currentFamilyId,
 
     // Data from TanStack Query

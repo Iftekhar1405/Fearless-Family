@@ -22,7 +22,7 @@ interface FamilyChatPageProps {
 export default function FamilyChatPage({ params }: FamilyChatPageProps) {
   // Unwrap the params Promise using React.use()
   const resolvedParams = use(params);
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [memberId, setMemberId] = useState<string | null>(null);
   const [username, setUsername] = useState<string>('');
@@ -32,17 +32,17 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
   useEffect(() => {
     const storedMemberId = localStorage.getItem(`member_${resolvedParams.code}`);
     const storedUsername = localStorage.getItem(`username_${resolvedParams.code}`) || 'Anonymous';
-    
+
     if (!storedMemberId) {
       router.push(`/join-family?code=${resolvedParams.code}`);
       return;
     }
-    
+
     setMemberId(storedMemberId);
     setUsername(storedUsername);
   }, [resolvedParams.code, router]);
 
-  // Use your custom hooks
+  // Us e your custom hooks
   const { data: family, isLoading: familyLoading, error: familyError } = useFamily(resolvedParams.code);
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(resolvedParams.code);
 
@@ -55,6 +55,7 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
     onlineUsers,
     isLoadingMessages,
     messagesError,
+    connectionError,
     joinFamily,
     sendMessage,
     sendTypingIndicator,
@@ -177,12 +178,12 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
           </div>
 
           {/* Error Message */}
-          {error && (
+          {(error || connectionError) && (
             <div className="px-6 py-3 bg-destructive/10 border-b border-destructive/20 transition-colors duration-300">
               <div className="max-w-4xl mx-auto">
                 <p className="text-sm text-destructive flex items-center">
                   <AlertCircle className="w-4 h-4 mr-2" />
-                  {error.message || 'Connection error occurred'}
+                  {connectionError || error?.message || 'Connection error occurred'}
                 </p>
               </div>
             </div>
@@ -191,14 +192,14 @@ export default function FamilyChatPage({ params }: FamilyChatPageProps) {
           {/* Messages and Input */}
           <div className="relative flex-1 min-h-0">
             <div className="absolute inset-0 pb-[92px]">
-              <MessageList 
-                messages={messages} 
+              <MessageList
+                messages={messages}
                 typingUsers={typingUsers}
                 currentUserId={memberId}
               />
             </div>
             <div className="absolute bottom-0 left-0 right-0">
-              <MessageInput 
+              <MessageInput
                 onSendMessage={handleSendMessage}
                 onTyping={sendTypingIndicator}
                 disabled={!isConnected || isSendingMessage}

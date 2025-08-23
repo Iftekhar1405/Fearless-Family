@@ -1,15 +1,15 @@
 // client/lib/api.ts
 
-import { 
-  Family, 
-  Member, 
-  Message, 
-  CreateFamilyResponse, 
-  FamilyDetailsResponse 
-} from '@/client/types';
+import {
+  Family,
+  Member,
+  Message,
+  CreateFamilyResponse,
+  FamilyDetailsResponse,
+} from "@/client/types";
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = "http://localhost:3001";
 
 class ApiService {
   private async request<T>(
@@ -17,10 +17,10 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${API_BASE_URL}/api${endpoint}`;
-    
+
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options.headers,
       },
       ...options,
@@ -28,10 +28,12 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          errorData.message || `HTTP error! status: ${response.status}`
+        );
       }
 
       return await response.json();
@@ -43,34 +45,45 @@ class ApiService {
 
   // Family endpoints
   async getFamilies(): Promise<Family[]> {
-    return this.request<Family[]>('/families');
+    return this.request<Family[]>("/families");
   }
 
   async getFamily(code: string): Promise<Family> {
     return this.request<Family>(`/families/${code}`);
   }
 
-  async getFamilyDetails(code: string, memberId: string): Promise<FamilyDetailsResponse> {
-    return this.request<FamilyDetailsResponse>(`/families/${code}/details?memberId=${memberId}`);
+  async getFamilyDetails(
+    code: string,
+    memberId: string
+  ): Promise<FamilyDetailsResponse> {
+    return this.request<FamilyDetailsResponse>(
+      `/families/${code}/details?memberId=${memberId}`
+    );
   }
 
-  async createFamily(data: { name: string; username: string }): Promise<CreateFamilyResponse> {
-    return this.request<CreateFamilyResponse>('/families', {
-      method: 'POST',
+  async createFamily(data: {
+    name: string;
+    username: string;
+  }): Promise<CreateFamilyResponse> {
+    return this.request<CreateFamilyResponse>("/families", {
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
-  async joinFamily(data: { code: string; username: string }): Promise<{ family: Family; member: Member }> {
-    return this.request<{ family: Family; member: Member }>(`/families/${data.code}/join`, {
-      method: 'POST',
-      body: JSON.stringify({ username: data.username }),
+  async joinFamily(data: {
+    code: string;
+    username: string;
+  }): Promise<{ family: Family; member: Member }> {
+    return this.request<{ family: Family; member: Member }>(`/families/join`, {
+      method: "POST",
+      body: JSON.stringify({ username: data.username, code: data.code }),
     });
   }
 
   async leaveFamily(code: string, memberId: string): Promise<void> {
     return this.request<void>(`/families/${code}/leave`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ memberId }),
     });
   }
@@ -85,8 +98,14 @@ class ApiService {
   }
 
   // Message endpoints
-  async getMessages(code: string, memberId: string, limit: number = 50): Promise<Message[]> {
-    return this.request<Message[]>(`/families/${code}/messages?memberId=${memberId}&limit=${limit}`);
+  async getMessages(
+    code: string,
+    memberId: string,
+    limit: number = 50
+  ): Promise<Message[]> {
+    return this.request<Message[]>(
+      `/families/${code}/messages?memberId=${memberId}&limit=${limit}`
+    );
   }
 
   async sendMessage(data: {
@@ -95,7 +114,7 @@ class ApiService {
     memberId: string;
   }): Promise<Message> {
     return this.request<Message>(`/families/${data.familyCode}/messages`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({
         content: data.content,
         memberId: data.memberId,
@@ -105,24 +124,24 @@ class ApiService {
 
   async deleteMessage(code: string, messageId: string): Promise<void> {
     return this.request<void>(`/families/${code}/messages/${messageId}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 
   async updateMessage(
-    code: string, 
-    messageId: string, 
+    code: string,
+    messageId: string,
     content: string
   ): Promise<Message> {
     return this.request<Message>(`/families/${code}/messages/${messageId}`, {
-      method: 'PATCH',
+      method: "PATCH",
       body: JSON.stringify({ content }),
     });
   }
 
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
-    return this.request<{ status: string; timestamp: string }>('/health');
+    return this.request<{ status: string; timestamp: string }>("/health");
   }
 }
 
